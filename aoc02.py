@@ -1,10 +1,14 @@
 # Advent of Code 2024
 # Day 2
+# https://adventofcode.com/2024/day/2
 
 # Thought I'd be clever and use numpy. A good call but unnecessary.
 import numpy as np
 
-inputFileLines = open(r"c:\temp\aoc\2024\AOC-02.txt").readlines()
+#
+# Read the input file
+#
+inputFileLines = open(r"AOC-02.txt").readlines()
 
 # Ugh. Had to grab edge cases from github because I'd clearly missed something
 #inputFileLines = open(r"c:\temp\aoc\2024\AOC-02-edges.txt").readlines()
@@ -13,6 +17,10 @@ inputFileLines = open(r"c:\temp\aoc\2024\AOC-02.txt").readlines()
 inputData = []
 for line in inputFileLines:
     inputData.append([int(_) for _ in line.strip().split()])
+
+#
+# Solution
+#
 
 nPasses = 0 # The number of cases that pass
 
@@ -43,6 +51,9 @@ for line in inputData:
 
 print(f'Part A: {nPasses}')
 
+#
+# Part B
+#
 # Now, allow for one "problem" in each row
 # Do this by allowing any one item in the list to be removed
 # then testing the resulting list.
@@ -58,6 +69,13 @@ reportAllSafe = False
 
 if reportAllSafe:
     safeReports = open(r'C:\temp\aoc\2024\AOC-02-safe-amf.txt','w')
+
+# We're going to use this function later
+def updateLists(line, i):
+    newLineR = line[:i+1] + line[i+2:]
+    newLineM = line[:i] + line[i+1:]
+    newLineL = line[:i-1] + line[i:]
+    return (newLineL, newLineM, newLineR)
 
 # Step through all the input data again
 for line in inputData:
@@ -84,15 +102,15 @@ for line in inputData:
         #
         # In retrospect, this was the worse approach, but I'd committed to it.
 
+        # We need to track if we've been increasing or decreasing as we march along
+        wasIncreasing = False
+        wasDecreasing = False
+
         # Some lists to hold the copies of the data line with either the current item removed
         # the one before the current (left) or the one after the current (right)
         newLineR = []
         newLineM = []
         newLineL = []
-
-        # We need to track if we've been increasing or decreasing as we march along
-        wasIncreasing = False
-        wasDecreasing = False
 
         # Check, number by number, to see if the step to the next number is valid or not
         for i, value in enumerate(line[:-1]):
@@ -100,35 +118,25 @@ for line in inputData:
 
             if difference == 0:
                 # Must be increasing or decreasing, this is a failure
-                newLineR = line[:i+1] + line[i+2:]
-                newLineM = line[:i] + line[i+1:]
-                newLineL = line[:i-1] + line[i:]
+                (newLineL, newLineM, newLineR) = updateLists(line, i)
                 break
             elif difference > 0:
                 # We're increasing. This could be okay.
                 if wasDecreasing: # But not if we were decreasing before
-                    newLineR = line[:i+1] + line[i+2:]
-                    newLineM = line[:i] + line[i+1:]
-                    newLineL = line[:i-1] + line[i:]
+                    (newLineL, newLineM, newLineR) = updateLists(line, i)
                     break
                 if difference > 3: # Also not if the step is greater than 3
-                    newLineR = line[:i+1] + line[i+2:]
-                    newLineM = line[:i] + line[i+1:]
-                    newLineL = line[:i-1] + line[i:]
+                    (newLineL, newLineM, newLineR) = updateLists(line, i)
                     break
                 else:
                     wasIncreasing = True # No problem
             else:
                 # We're decreasing. This could be okay.
                 if wasIncreasing: # But not if we were increasing before
-                    newLineR = line[:i+1] + line[i+2:]
-                    newLineM = line[:i] + line[i+1:]
-                    newLineL = line[:i-1] + line[i:]
+                    (newLineL, newLineM, newLineR) = updateLists(line, i)
                     break
                 if difference < -3: # Also not if the step is greater than 3
-                    newLineR = line[:i+1] + line[i+2:]
-                    newLineM = line[:i] + line[i+1:]
-                    newLineL = line[:i-1] + line[i:]
+                    (newLineL, newLineM, newLineR) = updateLists(line, i)
                     break
                 else:
                     wasDecreasing = True # No problem
